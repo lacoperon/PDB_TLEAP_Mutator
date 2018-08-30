@@ -52,9 +52,9 @@ def mutate_residue(resid, newid,  delete_atms, rename_atms, renamed_atms, line):
 
 if __name__ == "__main__":
 
-    assert len(sys.argv) == 3
+    assert len(sys.argv) == 2
     input_file  = sys.argv[1]
-    output_file = sys.argv[2]
+    output_file = input_file.split(".")[0] + "_mut.pdb"
     print("Input: {}\nOutput: {}".format(input_file, output_file))
 
     # Defines partial functions in terms of the mutations we want to make
@@ -67,17 +67,12 @@ if __name__ == "__main__":
 
     content = open(input_file,"r").readlines()
 
-    print(len(content))
-
     print("Mutation: A E6956 --> G E6956")
     content = [mut_A_to_G(line) for line in content]
     content = list(filter(lambda x : x != None, content))
-    print(len(content))
     print("Mutation: A E6957 --> C E6957")
     content = [mut_A_to_C(line) for line in content]
     content = list(filter(lambda x : x != None, content))
-
-    print(len(content))
 
     out_content = "".join(content)
     out_writer = open(output_file, "w")
