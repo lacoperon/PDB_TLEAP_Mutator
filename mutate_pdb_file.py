@@ -30,6 +30,8 @@ Input:
     rename_atms  : list of atoms that should be renamed (ie ["C4"])
     renamed_atms : list of renamed atoms relative to rename_atms (ie ["C6"])
     line         : input line from PDB file
+Output:
+    appropriately modified line
 '''
 
 def mutate_residue(resid, newid,  delete_atms, rename_atms, renamed_atms, line):
@@ -52,10 +54,10 @@ def mutate_residue(resid, newid,  delete_atms, rename_atms, renamed_atms, line):
 
 if __name__ == "__main__":
 
-    assert len(sys.argv) == 2
-    input_file  = sys.argv[1]
-    output_file = input_file.split(".")[0] + "_mut.pdb"
-    print("Input: {}\nOutput: {}".format(input_file, output_file))
+    assert len(sys.argv) >= 1
+    input_files  = sys.argv[1:]
+    output_files = list(map(lambda x : x.split(".")[0] + "_mut.pdb", input_files))
+
 
     # Defines partial functions in terms of the mutations we want to make
     # within the PDB files (ie each one of these parameters is hand verified)
@@ -65,16 +67,21 @@ if __name__ == "__main__":
                          ["C4","N7","C8","N9"],
                          ["C6","N3","C2","N1"])
 
-    content = open(input_file,"r").readlines()
+    for i in range(len(input_files)):
+        input_file = input_files[i]
+        output_file = output_files[i]
+        print("Input: {}\nOutput: {}".format(input_file, output_file))
 
-    print("Mutation: A E6956 --> G E6956")
-    content = [mut_A_to_G(line) for line in content]
-    content = list(filter(lambda x : x != None, content))
-    print("Mutation: A E6957 --> C E6957")
-    content = [mut_A_to_C(line) for line in content]
-    content = list(filter(lambda x : x != None, content))
+        content = open(input_file,"r").readlines()
 
-    out_content = "".join(content)
-    out_writer = open(output_file, "w")
-    out_writer.write(out_content)
-    out_writer.close()
+        print("Mutation: A E6956 --> G E6956")
+        content = [mut_A_to_G(line) for line in content]
+        content = list(filter(lambda x : x != None, content))
+        print("Mutation: A E6957 --> C E6957")
+        content = [mut_A_to_C(line) for line in content]
+        content = list(filter(lambda x : x != None, content))
+
+        out_content = "".join(content)
+        out_writer = open(output_file, "w")
+        out_writer.write(out_content)
+        out_writer.close()

@@ -27,7 +27,7 @@ def remove_phosphates(input_file, output_file):
     while i < len(lines):
         line = lines[i]
         resid = line[21:26]
-        atom_name = line[13:16]
+        atom_name = line[13:16].strip()
         # print(atom_name)
 
         if after_ter:
