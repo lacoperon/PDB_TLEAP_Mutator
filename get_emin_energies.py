@@ -24,7 +24,10 @@ def grab_energies(filename):
 
     for line in f:
         if "EAMBER" in line:
-            energy = float(line.split("=")[1].strip())
+            try:
+                energy = float(line.split("=")[1].strip())
+            except ValueError:
+                energy = 0
             energies.append(energy)
 
     return energies
