@@ -11,6 +11,11 @@ and outputs the associated plots into a subdirectory within the `EMIN` dir.
 import glob
 import re
 import os
+import matplotlib
+
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 
 def grab_energies(filename):
@@ -31,7 +36,7 @@ def plot_energies(title, subtitle, energies, outfile):
     plt.ylabel('Energy (kcal)')
     plt.title("{}\n{}".format(title, subtitle))
     plt.savefig(outfile)
-
+    plt.close()
 
 if __name__ == "__main__":
     energy_files = glob.glob("EMIN/*_emin*.out")
@@ -44,4 +49,4 @@ if __name__ == "__main__":
         subtitle = "Within {}".format(path[len(path)-1])
 
         plot_energies(title, subtitle, energies,
-                      "EMIN/energy_plots/emin{}.jpg".format(cycle))
+                      "EMIN/energy_plots/emin{}.png".format(cycle))
