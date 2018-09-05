@@ -34,7 +34,7 @@ def plot_energies(title, subtitle, energies, outfile):
 
 
 if __name__ == "__main__":
-    energy_files = glob.glob("*_emin*.out")
+    energy_files = glob.glob("EMIN/*_emin*.out")
 
     for file in energy_files:
         cycle = re.findall("(?<=emin)[0-9]{1,2}", file)[0]
@@ -44,4 +44,4 @@ if __name__ == "__main__":
         subtitle = "Within {}".format(path[len(path)-1])
 
         plot_energies(title, subtitle, energies,
-                      "energy_plots/emin{}.jpg".format(cycle))
+                      "EMIN/energy_plots/emin{}.jpg".format(cycle))
