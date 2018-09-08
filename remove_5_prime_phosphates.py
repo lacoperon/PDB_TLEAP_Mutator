@@ -27,7 +27,7 @@ def remove_phosphates(input_file, output_file):
     while i < len(lines):
         line = lines[i]
         resid = line[21:26]
-        atom_name = line[13:16].strip()
+        atom_name = line[13:16]
         # print(atom_name)
 
         if after_ter:
@@ -38,7 +38,7 @@ def remove_phosphates(input_file, output_file):
             after_ter = True
             print("TER HIT")
 
-        if after_resid == resid and atom_name in ["P","OP1","OP2","OP3"]:
+        if after_resid == resid and atom_name.strip() in ["P","OP1","OP2","OP3"]:
             print("Deleting {} at {}".format(atom_name, resid))
             
         else:
