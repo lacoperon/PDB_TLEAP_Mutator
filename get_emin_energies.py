@@ -5,7 +5,10 @@ get_emin_energies.py
 
 This script uses a regular expression to extract the energies associated with
 energy minimization as run in AMBER from the output files, and then graphs them
-and outputs the associated plots into a subdirectory within the `EMIN` dir.
+and outputs the associated plot into a subdirectory within the `EMIN` dir.
+
+For each step in the energy minimization, the color alternates, starting with
+red and then going to blue and back to red, etc.
 '''
 
 import glob
@@ -35,21 +38,34 @@ def grab_energies(filename):
 def plot_energies(title, subtitle, energies, outfile):
     iterations = [x for x in range(len(energies))]
     plt.plot(iterations, energies, 'ro')
-    plt.xlabel('Cycle')
-    plt.ylabel('Energy (kcal)')
-    plt.title("{}\n{}".format(title, subtitle))
-    plt.savefig(outfile)
-    plt.close()
 
 if __name__ == "__main__":
     energy_files = glob.glob("EMIN/*_emin*.out")
+    energy_nums = [int(re.sub("[^0-9]", "", x)) for x in energy_files]
+    energy_files = [x for _,x in sorted(zip(energy_nums,energy_files))]
+
+    curr_cycle = 0
+
+    is_red = False
 
     for file in energy_files:
         cycle = re.findall("(?<=emin)[0-9]{1,2}", file)[0]
-        energies = grab_energies(file)
-        title = "EMIN Cycle {}".format(cycle)
-        path = os.getcwd().split('/')
-        subtitle = "Within {}".format(path[len(path)-1])
+        curr_energies = grab_energies(file)
+        curr_iterations = [x + curr_cycle for x in range(len(curr_energies))]
+        curr_cycle += len(curr_energies)
 
-        plot_energies(title, subtitle, energies,
-                      "EMIN/energy_plots/emin{}.png".format(cycle))
+        if not is_red:
+            plt.plot(curr_iterations, curr_energies, 'ro')
+            is_red = True
+        else:
+            plt.plot(curr_iterations, curr_energies, 'bo')
+            is_red = False
+
+    outfile = "EMIN/energy_plots/emin.png"
+
+    plt.xlabel('Cycle')
+    plt.ylabel('Energy (kcal)')
+    path = os.getcwd().split('/')
+    plt.title("{} for {}".format("Energy Minimization", path[len(path)-1]))
+    plt.savefig(outfile)
+    plt.close()
