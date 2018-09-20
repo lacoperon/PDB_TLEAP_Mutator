@@ -65,7 +65,6 @@ if __name__ == "__main__":
 
     plt.xlabel('Cycle')
     plt.ylabel('Energy (kcal)')
-    plt.ylim(ymin=min(curr_energies), ymax=0)
     path = os.getcwd().split('/')
     plt.title("{} for {}".format("Energy Minimization", path[len(path)-1]))
     plt.savefig(outfile)

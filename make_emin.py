@@ -1,3 +1,16 @@
+'''
+Elliot Williams
+20th September 2018
+make_emin.py
+
+This script creates the correct script (.sh) files for AMBER 16, running
+energy minimization for our 5JU*_GC Korostelev N1 subsystem.
+
+The input files [`emin1.in`, ..., `emin11.in`] should be manually copied in.
+
+All generated files will live within the `EMIN` subdirectory
+'''
+
 def generate_sh(struct_name):
 
     script_text = """
@@ -37,4 +50,8 @@ def generate_sh(struct_name):
     f.write(script_text)
 
 if __name__ == "__main__":
+    if not os.path.exists("EMIN/"):
+        print("Making EMIN directory; remember to copy in the `emin*.in` files")
+        os.makedirs("EMIN/")
+
     generate_sh("5jup_gc")

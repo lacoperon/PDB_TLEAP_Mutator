@@ -1,4 +1,4 @@
-def generate_equil_sh(struct_name):
+def generate_neutral_sh(struct_name):
 
     script_text = """
 #!/bin/bash
@@ -6,7 +6,7 @@ def generate_equil_sh(struct_name):
 #BSUB -q amber128
 #BSUB -n 1
 #BSUB -R "rusage[gpu=1:mem=12288],span[hosts=1]"
-#BSUB -J GPU_{1}_GC_EQUIL
+#BSUB -J GPU_{1}_GC_NEUTRAL
 #BSUB -o out
 #BSUB -e err
 
@@ -60,27 +60,40 @@ if [ -f logfile ]; then
      rm logfile
 fi
 
-################################### MD EQUILIBRATION STEPS ###################################
-echo "MD EQUILIBRATION starting at " >> time.log
+################################### MD LOGGING STEPS ###################################
+echo "MD NEUTRAL DYNAMICS starting at " >> time.log
 date >> time.log
 
 ############## Your Job Goes Here ############################
 #lava.mvapich2.wrapper # OLD for Amber12
 
-n78.mpich3.wrapper pmemd.cuda.MPI -O -i equil.in -p ../TLEAP/{0}_gc_wat.prmtop -c ../HEAT/{1}_gc_heat.rst -r {1}_gc_equil.rst -ref ../HEAT/{1}_gc_heat.rst -o 5JUP_GC_equil.out
+############## 10 ns total runtime ##############
+# Initial Run (1 ns) #
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c ../../PREDYN/{1}_gc_predyn.rst -r {1}_gc_dyn1_predynrst.rst -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+# Chained Runs(9 ns) #
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn1_predynrst.rst -r {1}_gc_dyn2_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn2_predynrst.rst -r {1}_gc_dyn3_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn3_predynrst.rst -r {1}_gc_dyn4_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn4_predynrst.rst -r {1}_gc_dyn5_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn5_predynrst.rst -r {1}_gc_dyn6_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn6_predynrst.rst -r {1}_gc_dyn7_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn7_predynrst.rst -r {1}_gc_dyn8_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn8_predynrst.rst -r {1}_gc_dyn9_predynrst.rst  -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i dyn.in -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn9_predynrst.rst -r {1}_gc_dyn10_predynrst.rst -ref ../../PREDYN/{1}_gc_predyn.rst -o 5JUP_GC_predynrestrained.out
 
-/share/apps/CENTOS6/amber/amber16/bin/ambpdb -p ../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_equil.rst > {1}_gc_equil.pdb
+## Converting RST file after 10ns to PDB file
+/share/apps/CENTOS6/amber/amber16/bin/ambpdb -p ../../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_dyn10_predynrst.rst > {1}_gc_dyn10_predynrst.pdb
 
-echo "equilibration equil_5JUP_GC is complete. View 5JUP_GC_equil.pdb with PyMol." | mailx -s "equil_{1}_GC" ejwilliams@wesleyan.edu
+echo "neutral dynamics predynrestrained_{1}_GC is complete. View {1}_GC_predynrestrained.pdb with PyMol." | mailx -s "neutral_{1}_GC_predynrst" ejwilliams@wesleyan.edu
 """.format(struct_name, struct_name.upper())
 
-    f = open("EQUIL/run_equil.sh", "w")
+    f = open("NEUTRAL/PREDYN_RESTRAINED/run_dyn.sh", "w")
     f.write(script_text)
     f.close()
 
-def generate_equil_in():
+def generate_neutral_in():
     input_text = """
-50ps equilibration step (EQUIL)
+1 ns neutral dynamics (NEUTRAL)
  &cntrl
   imin     = 0,    !no minimization
   ntx      = 5,    !AMBER 16: Coordinates & Velocities are read
@@ -92,8 +105,8 @@ def generate_equil_in():
   ntc      = 2,    !SHAKE 2 Hbonds constrained, 1 turn off for minimization
   cut      = 8.0,  !non-bond cutoff of 8A
   ntb      = 2,    !2 periodic boundaries for constant pressure
-  nstlim   = 50000,!number of MD steps to be performed
-  dt       = 0.001,!time step in psec
+  nstlim   = 500000,!number of MD steps to be performed
+  dt       = 0.002,!time step in psec
   tempi    = 0.0,  !initial temperature
   temp0    = 300,  !ref temperature
   ntt      = 3,    !1 constant temperature 3 Langevin dynamics set ig ***
@@ -111,18 +124,17 @@ def generate_equil_in():
  &wt
   type='END',
  &end
-
 """
 
-    f = open("EQUIL/equil.in", 'w')
+    f = open("NEUTRAL/PREDYN_RESTRAINED/dyn.in", 'w')
     f.write(input_text)
     f.close()
 
 if __name__ == "__main__":
 
-    if not os.path.exists("EQUIL/"):
-        print("Making EQUIL directory")
-        os.makedirs("EQUIL/")
+    if not os.path.exists("NEUTRAL/PREDYN_RESTRAINED/"):
+        print("Making PREDYN_RESTRAINED directory")
+        os.makedirs("NEUTRAL/PREDYN_RESTRAINED/")
 
-    generate_equil_sh("5jup")
-    generate_equil_in()
+    generate_neutral_sh("5jup")
+    generate_neutral_in()

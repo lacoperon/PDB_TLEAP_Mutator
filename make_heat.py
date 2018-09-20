@@ -71,5 +71,10 @@ heating: MD with restraint on molecule
     f.close()
 
 if __name__ == "__main__":
+
+    if not os.path.exists("HEAT/"):
+        print("Making HEAT directory")
+        os.makedirs("HEAT/")
+
     generate_heat_sh("5jup")
     generate_heat_in()

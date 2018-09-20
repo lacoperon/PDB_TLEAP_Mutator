@@ -1,4 +1,4 @@
-def generate_equil_sh(struct_name):
+def generate_predyn_sh(struct_name):
 
     script_text = """
 #!/bin/bash
@@ -6,7 +6,7 @@ def generate_equil_sh(struct_name):
 #BSUB -q amber128
 #BSUB -n 1
 #BSUB -R "rusage[gpu=1:mem=12288],span[hosts=1]"
-#BSUB -J GPU_{1}_GC_EQUIL
+#BSUB -J GPU_{1}_GC_PREDYN
 #BSUB -o out
 #BSUB -e err
 
@@ -61,26 +61,26 @@ if [ -f logfile ]; then
 fi
 
 ################################### MD EQUILIBRATION STEPS ###################################
-echo "MD EQUILIBRATION starting at " >> time.log
+echo "MD PREDYNAMICS starting at " >> time.log
 date >> time.log
 
 ############## Your Job Goes Here ############################
 #lava.mvapich2.wrapper # OLD for Amber12
 
-n78.mpich3.wrapper pmemd.cuda.MPI -O -i equil.in -p ../TLEAP/{0}_gc_wat.prmtop -c ../HEAT/{1}_gc_heat.rst -r {1}_gc_equil.rst -ref ../HEAT/{1}_gc_heat.rst -o 5JUP_GC_equil.out
+n78.mpich3.wrapper pmemd.cuda.MPI -O -i predyn.in -p ../TLEAP/{0}_gc_wat.prmtop -c ../EQUIL/{1}_gc_equil.rst -r {1}_gc_predyn.rst -ref ../EQUIL/{1}_gc_equil.rst -o 5JUP_GC_predyn.out
 
-/share/apps/CENTOS6/amber/amber16/bin/ambpdb -p ../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_equil.rst > {1}_gc_equil.pdb
+/share/apps/CENTOS6/amber/amber16/bin/ambpdb -p ../TLEAP/{0}_gc_wat.prmtop -c {1}_gc_predyn.rst > {1}_gc_predyn.pdb
 
-echo "equilibration equil_5JUP_GC is complete. View 5JUP_GC_equil.pdb with PyMol." | mailx -s "equil_{1}_GC" ejwilliams@wesleyan.edu
+echo "predynamics predyn_{1}_GC is complete. View {1}_GC_predyn.pdb with PyMol." | mailx -s "predyn_{1}_GC" ejwilliams@wesleyan.edu
 """.format(struct_name, struct_name.upper())
 
-    f = open("EQUIL/run_equil.sh", "w")
+    f = open("PREDYN/run_predyn.sh", "w")
     f.write(script_text)
     f.close()
 
-def generate_equil_in():
+def generate_predyn_in():
     input_text = """
-50ps equilibration step (EQUIL)
+100ps predynamics step (PREDYN -- 'equil part II')
  &cntrl
   imin     = 0,    !no minimization
   ntx      = 5,    !AMBER 16: Coordinates & Velocities are read
@@ -93,7 +93,7 @@ def generate_equil_in():
   cut      = 8.0,  !non-bond cutoff of 8A
   ntb      = 2,    !2 periodic boundaries for constant pressure
   nstlim   = 50000,!number of MD steps to be performed
-  dt       = 0.001,!time step in psec
+  dt       = 0.002,!time step in psec
   tempi    = 0.0,  !initial temperature
   temp0    = 300,  !ref temperature
   ntt      = 3,    !1 constant temperature 3 Langevin dynamics set ig ***
@@ -114,15 +114,16 @@ def generate_equil_in():
 
 """
 
-    f = open("EQUIL/equil.in", 'w')
+    f = open("PREDYN/predyn.in", 'w')
     f.write(input_text)
     f.close()
 
 if __name__ == "__main__":
 
-    if not os.path.exists("EQUIL/"):
-        print("Making EQUIL directory")
-        os.makedirs("EQUIL/")
 
-    generate_equil_sh("5jup")
-    generate_equil_in()
+    if not os.path.exists("PREDYN/"):
+        print("Making PREDYN directory")
+        os.makedirs("PREDYN/")
+
+    generate_predyn_sh("5jup")
+    generate_predyn_in()
