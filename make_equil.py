@@ -80,17 +80,38 @@ echo "equilibration equil_5JUP_GC is complete. View 5JUP_GC_equil.pdb with PyMol
 
 def generate_equil_in():
     input_text = """
-100ps equilibration with 20kcal restraint
+50ps equilibration step (EQUIL)
  &cntrl
-  imin=0, nstlim=100000, dt=0.001,
-  irest=0, ntx=1,
-  ntc=2, ntf=2, ntb=2, ntp=1,
-  cut=8.0, iwrap=1, ig=-1,
-  ntpr=5000, ntwx=1000, ntwr=50000,
-  ntt=3, gamma_ln=1.0, temp0=300.0,
-  ntr=1, restraintmask='@CA,C,N,O', restraint_wt=20.0,
-  ioutfm=1,
- /
+  imin     = 0,    !no minimization
+  ntx      = 5,    !AMBER 16: Coordinates & Velocities are read
+  irest    = 1,    !Flag to restart simulation (1, as ntx=5)
+  ntpr     = 5000, !print energy info every `ntpr` steps
+  ntwr     = 50000,!rewrite rst file every `ntwr` steps
+  ntwx     = 1000, !write coord to trj every `ntwx` steps
+  ntf      = 2,    !2 bond interactions involving H omitted ???
+  ntc      = 2,    !SHAKE 2 Hbonds constrained, 1 turn off for minimization
+  cut      = 8.0,  !non-bond cutoff of 8A
+  ntb      = 2,    !2 periodic boundaries for constant pressure
+  nstlim   = 50000,!number of MD steps to be performed
+  dt       = 0.001,!time step in psec
+  tempi    = 0.0,  !initial temperature
+  temp0    = 300,  !ref temperature
+  ntt      = 3,    !1 constant temperature 3 Langevin dynamics set ig ***
+  gamma_ln = 1.0,  !collision freq when ntt=3, 0 default **
+  ntp      = 1,    !constant pressure dynamics
+  pres0    = 1.0,  !reference pressure 1
+  taup     = 5.0,  !time constant for pressure
+  nmropt   = 1,    !1 nmr restraints and weight changes will be read
+  ioutfm   = 1,    !binary trajectory flag (we want 1 because smaller trj)
+  ntr      = 1,    !flag for restraining atoms in mask (we want 1 because onion shell)
+  restraint_wt = 20.0, ! restraint weight in kcal/mol Asquared
+  restraintmask=':1-5,11-17,22-33,35,39-41,73-95,98-101,108-126,130-132,139-146,153-162,165-166,170-171,184-187,204-215,227-242,252-265,269-312,330-343,350-360,372-377,379-444,451-479,494-495',
+  /
+ &end
+ &wt
+  type='END',
+ &end
+
 """
 
     f = open("EQUIL/equil.in", 'w')
